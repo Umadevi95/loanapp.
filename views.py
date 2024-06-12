@@ -33,7 +33,7 @@ class dataUploadView(View):
         form = self.form_class(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            data_No_of_dependents = request.POST.get('No_of_dependents')
+            data_no_of_dependents = request.POST.get('no_of_dependents')
             data_Loan_amount = request.POST.get('Loan_amount')
             data_Loan_term = request.POST.get('Loan_term')
             data_Cibil_score = request.POST.get('Cibil_score')
@@ -41,7 +41,6 @@ class dataUploadView(View):
 
             # Load and preprocess the dataset
             data = pd.read_csv("preprocessedloan_data.csv")
-            data = pd.get_dummies(data, drop_first=True)
             X = data.drop(columns=[' loan_status_ Rejected', 'loan_id'])
             y = data[' loan_status_ Rejected']
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -62,30 +61,35 @@ class dataUploadView(View):
             print(selected_feature_names)
 
             # Reduce the feature set
-            X_reduced = X[[' No_of_dependents', ' loan_amount', ' loan_term', ' cibil_score']]
+            X_reduced = X[[' no_of_dependents', ' loan_amount', ' loan_term', ' cibil_score']]
             X_train, X_test, y_train, y_test = train_test_split(X_reduced, y, test_size=0.2, random_state=42)
 
             # Train a new model on the reduced feature set
             model_reduced = RandomForestClassifier()
             model_reduced.fit(X_train, y_train)
 
+            # Pickle the new model
             filename_reduced = "reduced_model.sav"
+            pickle.dump(model_reduced, open(filename_reduced, 'wb'))
+
+            # Load the new model
             loaded_model_reduced = pickle.load(open(filename_reduced, 'rb'))
+
 
             # Prepare user input for prediction
             def get_user_input():
-                return np.array([[int(data_No_of_dependents), float(data_Loan_amount), int(data_Loan_term), float(data_Cibil_score)]])
+                return np.array([[int(data_no_of_dependents), float(data_Loan_amount), int(data_Loan_term), float(data_Cibil_score)]])
 
             selected_features = get_user_input()
             result = loaded_model_reduced.predict(selected_features)
             print("Prediction result:", result[0])
 
             dicc = {'yes': 1, 'no': 0}
-            data = np.array([data_No_of_dependents, data_Loan_amount, data_Loan_term, data_Cibil_score])
+            data = np.array([data_no_of_dependents, data_Loan_amount, data_Loan_term, data_Cibil_score])
             out = loaded_model_reduced.predict(data.reshape(1, -1))
 
             return render(request, "succ_msg.html", {
-                'data_No_of_dependents': data_No_of_dependents,
+                'data_no_of_dependents': data_no_of_dependents,
                 'data_Loan_amount': data_Loan_amount,
                 'data_Loan_term': data_Loan_term,
                 'data_Cibil_score': data_Cibil_score,

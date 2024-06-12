@@ -33,9 +33,9 @@ class dataUploadView(View):
         form = self.form_class(request.POST, request.FILES)
         if form.is_valid():
             form.save()
+            data_No_of_dependents = request.POST.get('No_of_dependents')
             data_Loan_amount = request.POST.get('Loan_amount')
             data_Loan_term = request.POST.get('Loan_term')
-            data_No_of_dependents = request.POST.get('No_of_dependents')
             data_Cibil_score = request.POST.get('Cibil_score')
 
 
@@ -62,7 +62,7 @@ class dataUploadView(View):
             print(selected_feature_names)
 
             # Reduce the feature set
-            X_reduced = X[[' no_of_dependents', ' loan_amount', ' loan_term', ' cibil_score']]
+            X_reduced = X[[' No_of_dependents', ' loan_amount', ' loan_term', ' cibil_score']]
             X_train, X_test, y_train, y_test = train_test_split(X_reduced, y, test_size=0.2, random_state=42)
 
             # Train a new model on the reduced feature set
@@ -74,7 +74,7 @@ class dataUploadView(View):
 
             # Prepare user input for prediction
             def get_user_input():
-                return np.array([[float(data_No_of_dependents), float(data_Loan_amount), float(data_Loan_term), float(data_Cibil_score)]])
+                return np.array([[int(data_No_of_dependents), float(data_Loan_amount), int(data_Loan_term), float(data_Cibil_score)]])
 
             selected_features = get_user_input()
             result = loaded_model_reduced.predict(selected_features)
